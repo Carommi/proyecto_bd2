@@ -79,6 +79,56 @@ app.delete("/productos/:id", (req, res) => {
     });
 });
 
+//Obtener todos los mensajes (READ)
+app.get("/mensajes", (req, res) => {
+    const sql = "SELECT * FROM mensajes";
+
+    conexion.query(sql, (error, resultados) => {
+        if (error) {
+            console.error("Error al consultar:", error);
+            return res.status(500).json({ mensaje: "Error al consultar los mensajes" });
+        }
+        // Retornamos el array de productos como JSON al cliente
+        res.json(resultados);
+    });
+});
+
+// 2. Crear un nuevo mensaje(CREATE)
+app.post("/contacto", (req, res) => {
+    const { nombre, correo, asunto, mensaje } = req.body;
+
+    // Consulta parametrizada con '?' para prevenir inyección SQL
+    const sql = "INSERT INTO mensajes (nombre, correo, asunto, mensaje) VALUES (?, ?, ?, ?)";
+    const valores = [nombre, correo, asunto, mensaje];
+
+    conexion.query(sql, valores, (error, resultado) => {
+        if (error) {
+            console.error("Error al enviar el mensaje:", error);
+            return res.status(500).json({ mensaje: "Error al crear el mensaje" });
+        }
+
+        res.status(201).json({
+            mensaje: "Mensaje enviado correctamente",
+            id: resultado.insertId,
+        });
+    });
+});
+
+// 3. Eliminar mensaje (DELETE)
+app.delete("/mensajes/:id", (req, res) => {
+    const id = req.params.id;
+    const sql = "DELETE FROM mensajes WHERE idMensaje = ?";
+
+    conexion.query(sql, [id], (error, resultado) => {
+        if (error) {
+            console.error("Error al eliminar el mensaje:", error);
+            return res.status(500).json({ mensaje: "Error al eliminar el mensaje" });
+        }
+        res.json({ mensaje: "Mensaje eliminado correctamente" });
+    });
+});
+
+
 // Iniciar servidor en el puerto 3000
 app.listen(3000, () => {
     console.log(" Servidor ejecutándose en http://localhost:3000");
