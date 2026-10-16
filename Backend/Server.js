@@ -1,22 +1,25 @@
 require("dotenv").config();
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
 const conexion = require("./db"); // Importamos la conexión creada en db.js
 
 const app = express();
+const frontendPath = path.join(__dirname, "../Frontend");
 
 // Middlewares globales
 app.use(cors()); // Permitir peticiones desde el frontend
 app.use(express.json()); // Habilitar la lectura de datos en formato JSON en el cuerpo (req.body)
+app.use(express.static(frontendPath));
 
-// Ruta de prueba
+// Ruta principal para servir la app web
 app.get("/", (req, res) => {
-    res.send("Servidor funcionando correctamente");
+    res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 // 1. Obtener todos los productos (READ)
 app.get("/productos", (req, res) => {
-    const sql = "SELECT * FROM productos";
+    const sql = "SELECT idProducto AS id, nombre, precio, stock FROM Productos";
 
     conexion.query(sql, (error, resultados) => {
         if (error) {
@@ -33,7 +36,7 @@ app.post("/productos", (req, res) => {
     const { nombre, precio, stock } = req.body;
 
     // Consulta parametrizada con '?' para prevenir inyección SQL
-    const sql = "INSERT INTO productos (nombre, precio, stock) VALUES (?, ?, ?)";
+    const sql = "INSERT INTO Productos (nombre, precio, stock) VALUES (?, ?, ?)";
     const valores = [nombre, precio, stock];
 
     conexion.query(sql, valores, (error, resultado) => {
@@ -54,7 +57,7 @@ app.put("/productos/:id", (req, res) => {
     const id = req.params.id;
     const { nombre, precio, stock } = req.body;
 
-    const sql = "UPDATE productos SET nombre = ?, precio = ?, stock = ? WHERE id = ?";
+    const sql = "UPDATE Productos SET nombre = ?, precio = ?, stock = ? WHERE idProducto = ?";
     const valores = [nombre, precio, stock, id];
 
     conexion.query(sql, valores, (error, resultado) => {
@@ -69,7 +72,7 @@ app.put("/productos/:id", (req, res) => {
 // 4. Eliminar un producto (DELETE)
 app.delete("/productos/:id", (req, res) => {
     const id = req.params.id;
-    const sql = "DELETE FROM productos WHERE id = ?";
+    const sql = "DELETE FROM Productos WHERE idProducto = ?";
 
     conexion.query(sql, [id], (error, resultado) => {
         if (error) {
@@ -93,7 +96,7 @@ app.post("/contacto", (req, res) => {
         return res.status(400).json({ mensaje: "Todos los campos son obligatorios" });
     }
 
-    const sql = "INSERT INTO mensajes_contacto (nombre, email, asunto, mensaje) VALUES (?, ?, ?, ?)";
+    const sql = "INSERT INTO Mensajes (nombre, correo, asunto, mensaje) VALUES (?, ?, ?, ?)";
     const valores = [nombre, email, asunto, mensaje];
 
     conexion.query(sql, valores, (error, resultado) => {
@@ -111,7 +114,7 @@ app.post("/contacto", (req, res) => {
 
 // 6. Consultar todos los mensajes de contacto (GET)
 app.get("/contacto", (req, res) => {
-    const sql = "SELECT * FROM mensajes_contacto ORDER BY fecha_registro DESC";
+    const sql = "SELECT idMensaje AS id, nombre, correo, asunto, mensaje, fechaHora AS fecha_registro FROM Mensajes ORDER BY fechaHora DESC";
 
     conexion.query(sql, (error, resultados) => {
         if (error) {
@@ -125,7 +128,7 @@ app.get("/contacto", (req, res) => {
 // 7. Eliminar un mensaje de contacto (DELETE)
 app.delete("/contacto/:id", (req, res) => {
     const id = req.params.id;
-    const sql = "DELETE FROM mensajes_contacto WHERE id = ?";
+    const sql = "DELETE FROM Mensajes WHERE idMensaje = ?";
 
     conexion.query(sql, [id], (error, resultado) => {
         if (error) {

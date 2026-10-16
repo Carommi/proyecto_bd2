@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+const API_URL = "https://proyecto-bd2-eqrs.onrender.com/";
 
 // Elementos del DOM
 const listaProductos = document.getElementById("listaProductos");
@@ -12,6 +12,7 @@ const btnCancelar = document.getElementById("btnCancelar");
 const tituloFormulario = document.getElementById("tituloFormulario");
 const formContacto = document.getElementById("formularioContacto");
 const contactoId = document.getElementById("contactoId");
+const listaMensajes = document.getElementById("listaMensajes");
 
 // 1. Función para consultar los productos y mostrarlos en el DOM (READ)
 async function cargarProductos() {
@@ -147,7 +148,7 @@ if (formContacto) {
             const respuesta = await fetch(`${API_URL}/contacto`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nombre, correo, asunto, mensaje }),
+                body: JSON.stringify({ nombre, email: correo, asunto, mensaje }),
             });
 
             const resultado = await respuesta.json();
@@ -170,7 +171,7 @@ async function cargarMensajes() {
     if (!listaMensajes) return;
 
     try {
-        const respuesta = await fetch(`${API_URL}/mensajes`);
+        const respuesta = await fetch(`${API_URL}/contacto`);
         const mensajes = await respuesta.json();
 
         listaMensajes.innerHTML = "";
@@ -192,7 +193,7 @@ async function cargarMensajes() {
                   <p>${msj.mensaje}</p>
                 </div>
                 <div class="acciones">
-                  <button class="btn-eliminar" onclick="eliminarMensaje(${msj.idMensaje})">Eliminar</button>
+                  <button class="btn-eliminar" onclick="eliminarMensaje(${msj.id})">Eliminar</button>
                 </div>
             `;
 
@@ -209,7 +210,7 @@ async function eliminarMensaje(idMensaje) {
     if (!confirmar) return;
 
     try {
-        const respuesta = await fetch(`${API_URL}/mensajes/${idMensaje}`, {
+        const respuesta = await fetch(`${API_URL}/contacto/${idMensaje}`, {
             method: "DELETE",
         });
 
