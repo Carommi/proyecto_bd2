@@ -11,6 +11,7 @@ const btnGuardar = document.getElementById("btnGuardar");
 const btnCancelar = document.getElementById("btnCancelar");
 const tituloFormulario = document.getElementById("tituloFormulario");
 const formContacto = document.getElementById("formularioContacto");
+const contactoId = document.getElementById("contactoId");
 
 // 1. Función para consultar los productos y mostrarlos en el DOM (READ)
 async function cargarProductos() {
@@ -38,8 +39,8 @@ async function cargarProductos() {
           <p>Stock: ${producto.stock} unidades</p>
         </div>
         <div class="acciones">
-          <button class="btn-editar" onclick="cargarEnFormulario(${producto.idProducto}, '${producto.nombre}', ${producto.precio}, ${producto.stock})">Editar</button>
-          <button class="btn-eliminar" onclick="eliminarProducto(${producto.idProducto})">Eliminar</button>
+          <button class="btn-editar" onclick="cargarEnFormulario(${producto.id}, '${producto.nombre}', ${producto.precio}, ${producto.stock})">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarProducto(${producto.id})">Eliminar</button>
         </div>
       `;
 
@@ -132,14 +133,100 @@ async function eliminarProducto(id) {
     }
 }
 
-// 5. Formulario de contacto (demostrativo en contacto.html)
+// 5. Formulario de contacto
 if (formContacto) {
-    formContacto.addEventListener("submit", (e) => {
-        e.preventDefault();
-        alert("¡Mensaje de contacto enviado con éxito!");
-        formContacto.reset();
+    formContacto.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const nombre = document.getElementById("nombre").value;
+        const correo = document.getElementById("correo").value;
+        const asunto = document.getElementById("asunto").value;
+        const mensaje = document.getElementById("mensaje").value;
+
+        try {
+            const respuesta = await fetch(`${API_URL}/contacto`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre, correo, asunto, mensaje }),
+            });
+
+            const resultado = await respuesta.json();
+            if (respuesta.ok) {
+                alert(resultado.mensaje);
+                formContacto.reset();
+                cargarMensajes();
+            } else {
+                alert("Error: " + resultado.mensaje);
+            }
+        } catch (error) {
+            console.error("Error al enviar el mensaje:", error);
+            alert("No se pudo conectar con el servidor.");
+        }
     });
 }
 
+// 6. Cargar y mostrar todos los mensajes en pantalla (READ)
+async function cargarMensajes() {
+    if (!listaMensajes) return;
+
+    try {
+        const respuesta = await fetch(`${API_URL}/mensajes`);
+        const mensajes = await respuesta.json();
+
+        listaMensajes.innerHTML = "";
+
+        if (mensajes.length === 0) {
+            listaMensajes.innerHTML = "<p style='color: #64748b;'>No hay mensajes registrados.</p>";
+            return;
+        }
+
+        mensajes.forEach((msj) => {
+            const elemento = document.createElement("div");
+            elemento.classList.add("mensaje");
+
+            elemento.innerHTML = `
+                <div class="mensaje-info">
+                  <h3>${msj.nombre}</h3>
+                  <p><strong>Correo:</strong> ${msj.correo}</p>
+                  <p><strong>Asunto:</strong> ${msj.asunto}</p>
+                  <p>${msj.mensaje}</p>
+                </div>
+                <div class="acciones">
+                  <button class="btn-eliminar" onclick="eliminarMensaje(${msj.idMensaje})">Eliminar</button>
+                </div>
+            `;
+
+            listaMensajes.appendChild(elemento);
+        });
+    } catch (error) {
+        console.error("Error al cargar mensajes:", error);
+    }
+}
+
+// 7. Eliminar un mensaje (DELETE)
+async function eliminarMensaje(idMensaje) {
+    const confirmar = confirm("¿Deseas eliminar este mensaje de la base de datos?");
+    if (!confirmar) return;
+
+    try {
+        const respuesta = await fetch(`${API_URL}/mensajes/${idMensaje}`, {
+            method: "DELETE",
+        });
+
+        const resultado = await respuesta.json();
+
+        if (respuesta.ok) {
+            alert(resultado.mensaje);
+            cargarMensajes();
+        } else {
+            alert("Error: " + resultado.mensaje);
+        }
+    } catch (error) {
+        console.error("Error al eliminar mensaje:", error);
+        alert("No se pudo conectar con el servidor para eliminar.");
+    }
+}
 // Llamado inicial al cargar la página
 cargarProductos();
+cargarMensajes();
+
