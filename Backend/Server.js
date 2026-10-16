@@ -1,4 +1,4 @@
-require("dotenv").config()
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const conexion = require("./db"); // Importamos la conexión creada en db.js
@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
 
 // 1. Obtener todos los productos (READ)
 app.get("/productos", (req, res) => {
-    const sql = "SELECT * FROM productos";
+    const sql = "SELECT * FROM Productos";
 
     conexion.query(sql, (error, resultados) => {
         if (error) {
@@ -33,7 +33,7 @@ app.post("/productos", (req, res) => {
     const { nombre, precio, stock } = req.body;
 
     // Consulta parametrizada con '?' para prevenir inyección SQL
-    const sql = "INSERT INTO productos (nombre, precio, stock) VALUES (?, ?, ?)";
+    const sql = "INSERT INTO Productos (nombre, precio, stock) VALUES (?, ?, ?)";
     const valores = [nombre, precio, stock];
 
     conexion.query(sql, valores, (error, resultado) => {
@@ -54,7 +54,7 @@ app.put("/productos/:id", (req, res) => {
     const id = req.params.id;
     const { nombre, precio, stock } = req.body;
 
-    const sql = "UPDATE productos SET nombre = ?, precio = ?, stock = ? WHERE id = ?";
+    const sql = "UPDATE Productos SET nombre = ?, precio = ?, stock = ? WHERE id = ?";
     const valores = [nombre, precio, stock, id];
 
     conexion.query(sql, valores, (error, resultado) => {
@@ -69,7 +69,7 @@ app.put("/productos/:id", (req, res) => {
 // 4. Eliminar un producto (DELETE)
 app.delete("/productos/:id", (req, res) => {
     const id = req.params.id;
-    const sql = "DELETE FROM productos WHERE id = ?";
+    const sql = "DELETE FROM Productos WHERE id = ?";
 
     conexion.query(sql, [id], (error, resultado) => {
         if (error) {
@@ -80,58 +80,64 @@ app.delete("/productos/:id", (req, res) => {
     });
 });
 
-//Obtener todos los mensajes (READ)
-app.get("/mensajes", (req, res) => {
-    const sql = "SELECT * FROM mensajes";
+// ==========================================
+// RUTAS DE CONTACTO
+// ==========================================
 
-    conexion.query(sql, (error, resultados) => {
-        if (error) {
-            console.error("Error al consultar:", error);
-            return res.status(500).json({ mensaje: "Error al consultar los mensajes" });
-        }
-        // Retornamos el array de productos como JSON al cliente
-        res.json(resultados);
-    });
-});
-
-// 2. Crear un nuevo mensaje(CREATE)
+// 5. Registrar un nuevo mensaje de contacto (POST)
 app.post("/contacto", (req, res) => {
-    const { nombre, correo, asunto, mensaje } = req.body;
+    const { nombre, email, asunto, mensaje } = req.body;
 
-    // Consulta parametrizada con '?' para prevenir inyección SQL
-    const sql = "INSERT INTO mensajes (nombre, correo, asunto, mensaje) VALUES (?, ?, ?, ?)";
-    const valores = [nombre, correo, asunto, mensaje];
+    // Validación básica de campos requeridos
+    if (!nombre || !email || !asunto || !mensaje) {
+        return res.status(400).json({ mensaje: "Todos los campos son obligatorios" });
+    }
+
+    const sql = "INSERT INTO Mensajes (nombre, email, asunto, mensaje) VALUES (?, ?, ?, ?)";
+    const valores = [nombre, email, asunto, mensaje];
 
     conexion.query(sql, valores, (error, resultado) => {
         if (error) {
-            console.error("Error al enviar el mensaje:", error);
-            return res.status(500).json({ mensaje: "Error al crear el mensaje" });
+            console.error("Error al guardar mensaje de contacto:", error);
+            return res.status(500).json({ mensaje: "Error al registrar el mensaje de contacto" });
         }
 
         res.status(201).json({
-            mensaje: "Mensaje enviado correctamente",
+            mensaje: "Mensaje de contacto enviado con éxito",
             id: resultado.insertId,
         });
     });
 });
 
-// 3. Eliminar mensaje (DELETE)
-app.delete("/mensajes/:id", (req, res) => {
+// 6. Consultar todos los mensajes de contacto (GET)
+app.get("/contacto", (req, res) => {
+    const sql = "SELECT * FROM Mensajes ORDER BY fecha_registro DESC";
+
+    conexion.query(sql, (error, resultados) => {
+        if (error) {
+            console.error("Error al consultar mensajes de contacto:", error);
+            return res.status(500).json({ mensaje: "Error al consultar los mensajes de contacto" });
+        }
+        res.json(resultados);
+    });
+});
+
+// 7. Eliminar un mensaje de contacto (DELETE)
+app.delete("/contacto/:id", (req, res) => {
     const id = req.params.id;
-    const sql = "DELETE FROM mensajes WHERE idMensaje = ?";
+    const sql = "DELETE FROM Mensajes WHERE id = ?";
 
     conexion.query(sql, [id], (error, resultado) => {
         if (error) {
-            console.error("Error al eliminar el mensaje:", error);
-            return res.status(500).json({ mensaje: "Error al eliminar el mensaje" });
+            console.error("Error al eliminar mensaje de contacto:", error);
+            return res.status(500).json({ mensaje: "Error al eliminar el mensaje de contacto" });
         }
         res.json({ mensaje: "Mensaje eliminado correctamente" });
     });
 });
 
-
 // Iniciar servidor en el puerto 3000
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`" Servidor ejecutándose en http://localhost:${PORT}`);
+    console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 });
