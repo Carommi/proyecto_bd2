@@ -7,7 +7,7 @@ const host = process.env.DB_HOST || "localhost";
 const port = Number(process.env.DB_PORT) || 3306;
 const user = process.env.DB_USER || "root";
 const password = process.env.DB_PASSWORD || "";
-const database = process.env.DB_NAME || "tienda"
+const database = process.env.DB_NAME || "Tienda"
 
 // Opciones de configuración
 const configuracion = {
@@ -16,7 +16,7 @@ const configuracion = {
     user,
     password,
     database
-},
+};
 
 // Sí el host es remoto (TiDB Cloud), habilitar el SSL automaticamente
 if (host !== "localhost" && host !== "127.0.0.1") {
@@ -35,7 +35,7 @@ connection.connect((error) => {
         console.log("Error al conectar con la base de datos", error.message);
         return;
     }
-    console.log(`Conexión exitosa con la base de datos (${host}:${post})`);
+    console.log(`Conexión exitosa con la base de datos (${host}:${port})`);
 });
 
 
